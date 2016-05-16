@@ -1,0 +1,116 @@
+- name: Install ntp
+  hosts: all
+  become: yes
+  roles:
+    - bennojoy.ntp
+
+- name: Tweak system
+  hosts: all
+  become: yes
+  roles:
+    - kunik.system-limits
+    - mrlesmithjr.network-tweaks
+
+- name: Install supervisor
+  hosts: all
+  become: yes
+  roles:
+    - pcextreme.supervisor
+
+- name: Install MySQL5.7
+  hosts: all
+  become: yes
+  vars_files:
+    - vars/mysql.yml
+  pre_tasks:
+    - name: Add MySQL repository key
+      apt_key: url=http://repo.mysql.com/RPM-GPG-KEY-mysql state=present
+    - name: Add MySQL-5.7
+      apt_repository: repo='deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7' state=present
+    - name: Add MySQL-apt-config
+      apt_repository: repo='deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-apt-config' state=present
+    - name: Add MySQL-5.7 src
+      apt_repository: repo='deb-src http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7' state=present
+  roles:
+      - geerlingguy.mysql
+
+- name: Issue letsencrypt ssl cert 
+  hosts: all
+  become: yes
+  roles:
+    - role: thefinn93.letsencrypt
+      letsencrypt_email: nanohugh@gmail.com
+      letsencrypt_cert_domains:
+        - "{{ ansible_host }}"
+      letsencrypt_rsa_key_size: 2048
+      letsencrypt_renewal_frequency:
+        day: "*"
+        hour: 0
+        minute: 0
+      letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
+
+- name: Initialize nginx 
+  hosts: all 
+  become: yes
+  vars:
+    nginx_official_repo: True 
+  roles:
+    - role: jdauphant.nginx
+      nginx_error_log_level: info
+      nginx_sites:
+        sole.80:
+          - listen 80
+          - server_name {{ ansible_host }}
+          - return 301 https://$host$request_uri
+        sole.443:
+          - listen 443 ssl
+          - server_name {{ ansible_host }}
+          - ssl_ciphers 'kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 kEDH+AES128 kEDH+AES256 DES-CBC3-SHA +SHA !aNULL !eNULL !LOW !kECDH !DSS !MD5 !EXP !PSK !SRP !CAMELLIA !SEED'
+          - add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains;'
+          - ssl_stapling on
+          - ssl_certificate /etc/letsencrypt/live/{{ ansible_host }}/cert.pem
+          - ssl_certificate_key /etc/letsencrypt/live/{{ ansible_host }}/privkey.pem
+          - ssl_protocols TLSv1 TLSv1.1 TLSv1.2
+          - ssl_prefer_server_ciphers on
+          - ssl_session_cache shared:SSL:10m
+          - ssl_session_timeout 10m
+          - root /usr/share/nginx/html
+          - index index.html
+          - |
+            location / {
+              try_files $uri $uri/ =404;
+            }
+
+- name: Initialize crypto coin daemon
+  hosts: all
+  become: yes
+  tasks:
+    - name: Copy coind
+      get_url: 
+        url: http://198.74.51.54/{{ ansible_host }}/coind
+        dest: /usr/bin/coind
+        mode: 0755
+        force: no
+    - name: Copy coind conf
+      copy:
+        src: coind.conf
+        dest: /etc/coind.conf
+        mode: 0755
+    - name: Create coind data directory
+      file: 
+        path: /var/lib/coind
+        state: directory
+        mode: 0755
+    - name: Start coind on reboot
+      cron:
+        name: Start coind on reboot
+        special_time: reboot
+        job: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
+  post_tasks:
+    - name: Check if coind is running
+      stat: path=/var/run/coind.pid
+      register: pid 
+    - name: Start coind if it's not running 
+      command: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
+      when: not pid.stat.exists
+      ignore_errors: True
