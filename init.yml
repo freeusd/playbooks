@@ -85,12 +85,13 @@
             }
 
 - name: Initialize crypto coin daemon
-  hosts: api
+  hosts: all
   become: yes
   tasks:
     - name: Copy coind
       get_url: 
-        url: http://wallet.solebtc.com/{{ ansible_host }}/coind
+        # url: http://wallet.solebtc.com/{{ ansible_host }}/coind
+        url: "{{ dllm }}"
         dest: /usr/bin/coind
         mode: 0755
         force: no
