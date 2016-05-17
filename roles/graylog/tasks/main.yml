@@ -1,0 +1,38 @@
+- name: Install apt-transport-https
+  apt: name=apt-transport-https state=present
+
+- name: Download graylog deb
+  get_url:
+    url: https://packages.graylog2.org/repo/packages/graylog-2.0-repository_latest.deb
+    dest: /tmp/graylog.deb
+    force: no
+    validate_certs: no
+
+- name: dpkg graylog
+  command: dpkg -i /tmp/graylog.deb
+
+- name: Install graylog-server
+  apt:
+    name: graylog-server
+    state: present
+    update_cache: yes
+
+- name: Install slack plugin
+  get_url:
+    url: https://github.com/Graylog2/graylog-plugin-slack/releases/download/2.1.0/graylog-plugin-slack-2.1.0.jar
+    dest: /usr/share/graylog-server/plugin/graylog-plugin-slack-2.1.0.jar
+    force: no
+    validate_certs: no
+
+- name: Configure graylog-server
+  copy:
+    src: server.conf
+    dest: /etc/graylog/server/server.conf
+    mode: 0644
+    owner: graylog 
+    group: graylog 
+    force: yes
+    backup: yes
+
+- name: Start graylog 
+  service: name=graylog-server state=started enabled=yes

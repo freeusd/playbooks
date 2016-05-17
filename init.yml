@@ -15,13 +15,13 @@
         job: ntpdate ntp.ubuntu.com
 
 - name: Install supervisor
-  hosts: all
+  hosts: api 
   become: yes
   roles:
     - pcextreme.supervisor
 
 - name: Install MySQL5.7
-  hosts: all
+  hosts: api 
   become: yes
   vars_files:
     - vars/mysql.yml
@@ -38,7 +38,7 @@
       - geerlingguy.mysql
 
 - name: Issue letsencrypt ssl cert 
-  hosts: all
+  hosts: api 
   become: yes
   roles:
     - role: thefinn93.letsencrypt
@@ -53,7 +53,7 @@
       letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
 
 - name: Initialize nginx 
-  hosts: all 
+  hosts: api 
   become: yes
   vars:
     nginx_official_repo: True 
@@ -85,12 +85,12 @@
             }
 
 - name: Initialize crypto coin daemon
-  hosts: all
+  hosts: api
   become: yes
   tasks:
     - name: Copy coind
       get_url: 
-        url: http://198.74.51.54/{{ ansible_host }}/coind
+        url: http://wallet.solebtc.com/{{ ansible_host }}/coind
         dest: /usr/bin/coind
         mode: 0755
         force: no
@@ -117,3 +117,36 @@
       command: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
       when: not pid.stat.exists
       ignore_errors: True
+
+- name: Install graylog-server
+  hosts: log
+  become: yes 
+  pre_tasks:
+    - name: Add java 8 repo
+      apt_repository: repo='ppa:openjdk-r/ppa'
+  roles:
+    - role: geerlingguy.elasticsearch
+      java_packages:
+        - openjdk-8-jdk
+    - role: greendayonfire.mongodb
+    - role: graylog
+    - role: jdauphant.nginx
+      nginx_official_repo: True 
+      nginx_error_log_level: info
+      nginx_sites:
+        graylog:
+          - listen 80
+          - server_name log.solebtc.com
+          - |
+            location / {
+              proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header    Host $http_host;
+              proxy_set_header    X-Graylog-Server-URL http://log.solebtc.com/api;
+              proxy_pass          http://127.0.0.1:9000;
+            }
+          - |
+            location /api/ {
+              proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header    Host $http_host;
+              proxy_pass          http://127.0.0.1:12900/;
+            }

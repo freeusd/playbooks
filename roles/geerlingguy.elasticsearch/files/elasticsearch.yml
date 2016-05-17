@@ -1,0 +1,2 @@
+cluster.name: graylog-production
+discovery.zen.ping.multicast.enabled: false
