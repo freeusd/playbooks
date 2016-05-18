@@ -1,15 +1,18 @@
-- name: Install ntp
-  hosts: all
-  become: yes
-  roles:
-    - bennojoy.ntp
-
 - name: Tweak system
   hosts: all
   become: yes
   roles:
     - kunik.system-limits
     - mrlesmithjr.network-tweaks
+
+- name: Setup ntp cronjob
+  hosts: all
+  become: yes
+  tasks:
+    - cron:
+        name: Adjust time every day
+        special_time: daily
+        job: ntpdate ntp.ubuntu.com
 
 - name: Install supervisor
   hosts: all
