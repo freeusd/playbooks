@@ -143,7 +143,7 @@
         special_time: reboot
         job: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
 
-- name: Install graylog-server
+- name: Install elasticsearch and mongodb for graylog-server 
   hosts: log
   become: yes 
   pre_tasks:
@@ -154,6 +154,14 @@
       java_packages:
         - openjdk-8-jdk
     - role: greendayonfire.mongodb
+  post_tasks:
+    - name: Fix ca certs for java
+      command: update-ca-certificates -f
+
+- name: Install graylog-server
+  hosts: log
+  become: yes
+  roles:
     - role: graylog
     - role: jdauphant.nginx
       nginx_official_repo: True 
