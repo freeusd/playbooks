@@ -1,0 +1,11 @@
+[program:sole]
+command=/usr/local/bin/sole
+autostart=true
+autorestart=true
+redirect_stderr=true
+stderr_logfile=/var/log/sole/err.log
+stdout_logfile=/var/log/sole/out.log
+user={{ ansible_user }}
+{% if env_vars|length > 0 %}
+environment={% for name, value in env_vars.iteritems() %}{% filter upper %}sole_{{ name }}{% endfilter %}="{{ value }}"{% if not loop.last %},{% endif %}{% endfor %}
+{% endif %}

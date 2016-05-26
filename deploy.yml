@@ -1,0 +1,26 @@
+- hosts: api
+  become: yes
+  environment:
+    GOPATH: /usr/local/gopath
+  pre_tasks:
+    - name: Make sure log directory exists
+      file: recurse=yes dest=/var/log/sole force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
+
+    - name: Build solebtc
+      command: go get github.com/freeusd/solebtc
+    - name: move solebtc to /usr/local/bin/sole
+      command: mv solebtc /usr/local/bin/sole chdir=/usr/local/gopath/bin
+
+    - name: Build goose for db migration
+      command: go get bitbucket.org/liamstask/goose/cmd/goose
+    - name: move goose to /usr/local/bin/goose
+      command: mv goose /usr/local/bin/goose chdir=/usr/local/gopath/bin
+
+    - name: Prepare configuration file
+      template: src=sole.conf.j2 dest=/etc/supervisord.d/sole.conf
+  tasks:
+    - name: Migrate database
+      command: goose -env production up chdir=/usr/local/gopath/src/github.com/freeusd/solebtc
+      
+    - name: Supervisorctl restart sole
+      supervisorctl: name=sole state=restarted
