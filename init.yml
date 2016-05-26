@@ -14,12 +14,19 @@
         special_time: daily
         job: ntpdate ntp.ubuntu.com
 
+- name: Install golang
+  hosts: api
+  become: yes
+  roles:
+    - role: azavea.golang
+      golang_version: 1.6
+      golang_os: linux
+      golang_arch: amd64
+      golang_path: /usr/local/gopath
+
 - name: Install git
   hosts: all
   become: true
-  pre_tasks:
-    - name: Workaround for privilege escalation
-      command: authconfig --disablefingerprint --update # https://github.com/ansible/ansible/issues/14426
   roles:
     - role: geerlingguy.git
       workspace: /opt
