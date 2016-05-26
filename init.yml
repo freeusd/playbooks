@@ -185,8 +185,3 @@
       async: 1
       poll: 0
       ignore_errors: true 
-    - name: Waiting for server to come back
-      local_action: 
-        sudo: false
-        module: wait_for
-          host={{ ansible_host }} state=started delay=15 timeout=300
