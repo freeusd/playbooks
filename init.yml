@@ -135,14 +135,6 @@
         name: Start coind on reboot
         special_time: reboot
         job: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
-  post_tasks:
-    - name: Check if coind is running
-      stat: path=/var/run/coind.pid
-      register: pid 
-    - name: Start coind if it's not running 
-      command: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
-      when: not pid.stat.exists
-      ignore_errors: True
 
 - name: Install graylog-server
   hosts: log
