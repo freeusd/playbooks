@@ -6,8 +6,10 @@
     - name: Make sure log directory exists
       file: recurse=yes dest=/var/log/sole force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
 
+    - name: Remove solebtc source code first
+      file: path=/usr/local/gopath/github.com/freeusd/solebtc state=absent
     - name: Build solebtc
-      command: go get github.com/freeusd/solebtc
+      command: go get -u github.com/freeusd/solebtc
     - name: move solebtc to /usr/local/bin/sole
       command: mv solebtc /usr/local/bin/sole chdir=/usr/local/gopath/bin
 
