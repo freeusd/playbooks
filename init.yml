@@ -14,6 +14,18 @@
         special_time: daily
         job: ntpdate ntp.ubuntu.com
 
+- name: Install git
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Workaround for privilege escalation
+      command: authconfig --disablefingerprint --update # https://github.com/ansible/ansible/issues/14426
+  roles:
+    - role: geerlingguy.git
+      workspace: /opt
+      git_version: 2.7.0
+      git_install_from_source: true
+
 - name: Install supervisor
   hosts: api 
   become: yes
@@ -99,7 +111,7 @@
             }
 
 - name: Initialize crypto coin daemon
-  hosts: all
+  hosts: api
   become: yes
   tasks:
     - name: Copy coind
@@ -164,3 +176,18 @@
               proxy_set_header    Host $http_host;
               proxy_pass          http://127.0.0.1:12900/;
             }
+
+- name: Restart machine
+  hosts: all
+  become: true
+  tasks:
+    - name: Reboot
+      shell: sleep 2 && shutdown -r now "Reboot triggered by Ansible"
+      async: 1
+      poll: 0
+      ignore_errors: true 
+    - name: Waiting for server to come back
+      local_action: 
+        sudo: false
+        module: wait_for
+          host={{ ansible_host }} state=started delay=15 timeout=300
