@@ -1,3 +1,9 @@
+- name: Update apt cache
+  hosts: all
+  become: yes
+  tasks:
+    - apt: update_cache=yes
+
 - name: Tweak system
   hosts: all
   become: yes
