@@ -20,6 +20,12 @@
         special_time: daily
         job: ntpdate ntp.ubuntu.com
 
+- name: Install nodejs
+  hosts: api
+  become: yes
+  roles:
+    - nodesource.node
+
 - name: Install golang
   hosts: api
   become: yes
