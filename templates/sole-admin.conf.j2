@@ -1,0 +1,9 @@
+[program:sole-admin]
+directory=/usr/local/share/sole-admin
+command=npm start
+autostart=true
+autorestart=true
+redirect_stderr=true
+stderr_logfile=/var/log/sole-admin/err.log
+stdout_logfile=/var/log/sole-admin/out.log
+user={{ ansible_user }}
