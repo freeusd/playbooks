@@ -1,0 +1,16 @@
+- name: Deploy web
+  hosts: api
+  become: yes
+  tasks:
+    - name: Download web
+      get_url:
+        url: "{{ web_dist_url }}"
+        dest: /usr/local/share/dist.tar.gz
+        mode: 0755
+        force: no
+
+    - name: Extract web dist
+      command: tar xvf dist.tar.gz chdir=/usr/local/share
+
+    - name: Move files in dist to nginx root
+      command: mv /usr/local/share/dist/* /usr/share/nginx/html/
