@@ -68,14 +68,16 @@
   roles:
       - geerlingguy.mysql
 
-- name: Issue letsencrypt ssl cert 
-  hosts: api 
+- name: Issue letsencrypt ssl cert for api servers
+  hosts: api
   become: yes
   roles:
     - role: thefinn93.letsencrypt
       letsencrypt_email: nanohugh@gmail.com
       letsencrypt_cert_domains:
         - "{{ domain_name }}"
+        - www.{{ domain_name }}
+        - admin.{{ domain_name }}
       letsencrypt_rsa_key_size: 2048
       letsencrypt_renewal_frequency:
         day: "*"
@@ -101,8 +103,7 @@
           - server_name {{ domain_name }}
           - ssl_ciphers 'kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 kEDH+AES128 kEDH+AES256 DES-CBC3-SHA +SHA !aNULL !eNULL !LOW !kECDH !DSS !MD5 !EXP !PSK !SRP !CAMELLIA !SEED'
           - add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains;'
-          - ssl_stapling on
-          - ssl_certificate /etc/letsencrypt/live/{{ domain_name }}/cert.pem
+          - ssl_certificate /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
           - ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem
           - ssl_protocols TLSv1 TLSv1.1 TLSv1.2
           - ssl_prefer_server_ciphers on
@@ -125,9 +126,25 @@
               index index.js index.html index.htm;
               try_files $uri /index.html;
             }
+        www.sole.80:
+          - listen 80
+          - server_name www.{{ domain_name }}
+          - return 301 https://{{ domain_name }}$request_uri
+        www.sole.443:
+          - listen 443 ssl
+          - server_name www.{{ domain_name }}
+          - ssl_certificate /etc/letsencrypt/live/www.{{ domain_name }}/fullchain.pem
+          - ssl_certificate_key /etc/letsencrypt/live/www.{{ domain_name }}/privkey.pem
+          - return 301 https://{{ domain_name }}$request_uri
         sole.admin.80:
           - listen 80
           - server_name admin.{{ domain_name }}
+          - return 301 https://admin.{{ domain_name }}$request_uri
+        sole.admin.443:
+          - listen 443 ssl
+          - server_name admin.{{ domain_name }}
+          - ssl_certificate /etc/letsencrypt/live/admin.{{ domain_name }}/fullchain.pem
+          - ssl_certificate_key /etc/letsencrypt/live/admin.{{ domain_name }}/privkey.pem
           - |
             location / {
               proxy_pass http://localhost:3000/;
