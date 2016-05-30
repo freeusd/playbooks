@@ -1,0 +1,21 @@
+- name: Deploy admin panel
+  hosts: api
+  become: yes
+  pre_tasks:
+    - name: Make sure log directory exists
+      file: recurse=yes dest=/var/log/sole-admin force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
+    - name: Remove sole-admin source code first
+      file: path=/usr/local/share/sole-admin state=absent
+    - name: Git clone sole-admin
+      git: repo=https://github.com/freeusd/solebtc-admin.git dest=/usr/local/share/sole-admin
+    - name: Build sole-admin
+      command: npm run build chdir=/usr/local/share/sole-admin
+    - name: Prepare sole-admin users.json
+      template: src=sole-admin-users.conf.j2 dest=/usr/local/share/sole-admin/config/users.json
+    - name: Prepare sole-admin supervisor configuration file
+      template: src=sole-admin.conf.j2 dest=/etc/supervisor/conf.d/sole-admin.conf
+    - name: Make sole-admin belongs to current user
+      file: path=/usr/local/share/sole-admin recurse=yes owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
+  tasks:
+    - name: Supervisorctl restart sole-admin
+      supervisorctl: name=sole-admin state=restarted
