@@ -178,6 +178,21 @@
         special_time: reboot
         job: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
 
+- name: Issue letsencrypt ssl cert for log server
+  hosts: log
+  become: yes
+  roles:
+    - role: thefinn93.letsencrypt
+      letsencrypt_email: nanohugh@gmail.com
+      letsencrypt_cert_domains:
+        - log.solebtc.com
+      letsencrypt_rsa_key_size: 2048
+      letsencrypt_renewal_frequency:
+        day: "*"
+        hour: 0
+        minute: 0
+      letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
+
 - name: Install elasticsearch and mongodb for graylog-server 
   hosts: log
   become: yes 
@@ -202,14 +217,18 @@
       nginx_official_repo: True 
       nginx_error_log_level: info
       nginx_sites:
-        graylog:
+        graylog.80:
           - listen 80
+          - server_name log.solebtc.com
+          - return 301 https://$host$request_uri
+        graylog.443:
+          - listen 443 ssl
           - server_name log.solebtc.com
           - |
             location / {
               proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header    Host $http_host;
-              proxy_set_header    X-Graylog-Server-URL http://log.solebtc.com/api;
+              proxy_set_header    X-Graylog-Server-URL https://log.solebtc.com/api;
               proxy_pass          http://127.0.0.1:9000;
             }
           - |
