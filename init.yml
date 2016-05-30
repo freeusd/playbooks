@@ -246,4 +246,5 @@
       shell: sleep 2 && shutdown -r now "Reboot triggered by Ansible"
       async: 1
       poll: 0
-      ignore_errors: true 
+      ignore_errors: true
+      when: restart_needed
