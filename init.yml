@@ -76,7 +76,25 @@
       letsencrypt_email: nanohugh@gmail.com
       letsencrypt_cert_domains:
         - "{{ domain_name }}"
+      letsencrypt_rsa_key_size: 2048
+      letsencrypt_renewal_frequency:
+        day: "*"
+        hour: 0
+        minute: 0
+      letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
+    - role: thefinn93.letsencrypt
+      letsencrypt_email: nanohugh@gmail.com
+      letsencrypt_cert_domains:
         - www.{{ domain_name }}
+      letsencrypt_rsa_key_size: 2048
+      letsencrypt_renewal_frequency:
+        day: "*"
+        hour: 0
+        minute: 0
+      letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
+    - role: thefinn93.letsencrypt
+      letsencrypt_email: nanohugh@gmail.com
+      letsencrypt_cert_domains:
         - admin.{{ domain_name }}
       letsencrypt_rsa_key_size: 2048
       letsencrypt_renewal_frequency:
