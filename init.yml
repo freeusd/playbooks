@@ -242,6 +242,8 @@
         graylog.443:
           - listen 443 ssl
           - server_name log.solebtc.com
+          - ssl_certificate /etc/letsencrypt/live/log.solebtc.com/fullchain.pem
+          - ssl_certificate_key /etc/letsencrypt/live/log.solebtc.com/privkey.pem
           - |
             location / {
               proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
