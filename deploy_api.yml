@@ -7,12 +7,12 @@
     - name: Make sure log directory exists
       file: recurse=yes dest=/var/log/sole force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
 
-    - name: Remove solebtc source code first
-      file: path=/usr/local/gopath/src/github.com/solefaucet/solebtc state=absent
-    - name: Build solebtc
-      command: go get -u github.com/solefaucet/solebtc
-    - name: move solebtc to /usr/local/bin/sole
-      command: mv solebtc /usr/local/bin/sole chdir=/usr/local/gopath/bin
+    - name: Remove sole-server source code first
+      file: path=/usr/local/gopath/src/github.com/solefaucet/sole-server state=absent
+    - name: Build sole-server
+      command: go get -u github.com/solefaucet/sole-server
+    - name: move sole-server to /usr/local/bin/sole
+      command: mv sole-server /usr/local/bin/sole chdir=/usr/local/gopath/bin
 
     - name: Build goose for db migration
       command: go get bitbucket.org/liamstask/goose/cmd/goose
@@ -23,7 +23,7 @@
       template: src=sole.conf.j2 dest=/etc/supervisor/conf.d/sole.conf
   tasks:
     - name: Migrate database
-      command: goose -env production up chdir=/usr/local/gopath/src/github.com/solefaucet/solebtc
+      command: goose -env production up chdir=/usr/local/gopath/src/github.com/solefaucet/sole-server
       
     - name: Supervisorctl restart sole
       supervisorctl: name=sole state=restarted
