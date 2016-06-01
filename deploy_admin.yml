@@ -7,7 +7,7 @@
     - name: Remove sole-admin source code first
       file: path=/usr/local/share/sole-admin state=absent
     - name: Git clone sole-admin
-      git: repo=https://github.com/freeusd/solebtc-admin.git dest=/usr/local/share/sole-admin
+      git: repo=https://github.com/solefaucet/solebtc-admin.git dest=/usr/local/share/sole-admin
     - name: Build sole-admin
       command: npm run build chdir=/usr/local/share/sole-admin
     - name: Prepare sole-admin users.json
