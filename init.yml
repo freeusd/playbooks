@@ -20,6 +20,12 @@
         special_time: daily
         job: ntpdate ntp.ubuntu.com
 
+- name: Update api-server hostname
+  hosts: api
+  become: yes
+  tasks:
+    - hostname: name={{ domain_name }}
+
 - name: Install nodejs
   hosts: api
   become: yes
