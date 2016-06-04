@@ -188,11 +188,16 @@
   hosts: api
   become: yes
   tasks:
-    - name: Download and unarchive cryptocurrency wallet
+    - name: Download wallet
+      get_url:
+        url: "{{ wallet_url }}"
+        dest: /opt/wallet.tar.gz
+        validate_certs: no
+    - name: Unarchive wallet
       unarchive:
-        copy: no
-        src: "{{ wallet_url }}"
+        src: /opt/wallet.tar.gz 
         dest: /opt
+        copy: no
     - name: Copy coind
       command: cp -f /opt/{{ wallet_file }} /usr/bin/coind
     - name: Copy coind conf
