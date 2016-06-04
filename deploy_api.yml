@@ -9,10 +9,12 @@
 
     - name: Remove sole-server source code first
       file: path=/usr/local/gopath/src/github.com/solefaucet/sole-server state=absent
+    - name: Clone sole-server
+      git:
+        repo: https://github.com/solefaucet/sole-server.git
+        dest: /usr/local/gopath/src/github.com/solefaucet/sole-server
     - name: Build sole-server
-      command: go get -u github.com/solefaucet/sole-server
-    - name: move sole-server to /usr/local/bin/sole
-      command: mv sole-server /usr/local/bin/sole chdir=/usr/local/gopath/bin
+      shell: "go build -ldflags \"-X main.goVersion=`go version | grep -o 'go[0-9|.]\\+'` -X main.buildTime=`date '+%Y-%m-%d_%I:%M:%S%p'` -X main.gitCommit=`git rev-parse --short HEAD`\" -o /usr/local/bin/sole chdir=/usr/local/gopath/src/github.com/solefaucet/sole-server"
 
     - name: Build goose for db migration
       command: go get bitbucket.org/liamstask/goose/cmd/goose
