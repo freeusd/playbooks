@@ -7,6 +7,15 @@
     - name: Make sure log directory exists
       file: recurse=yes dest=/var/log/sole force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
 
+    - name: Remove geo database first
+      file: path=/opt/GeoLite2-City.mmdb state=absent
+    - name: Download geo database
+      get_url:
+        url: http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
+        dest: /opt/GeoLite2-City.mmdb.gz
+    - name: Unarchive geo database
+      command: gzip -d GeoLite2-City.mmdb.gz chdir=/opt
+
     - name: Remove sole-server source code first
       file: path=/usr/local/gopath/src/github.com/solefaucet/sole-server state=absent
     - name: Clone sole-server
