@@ -116,15 +116,16 @@
     nginx_official_repo: True 
   roles:
     - role: jdauphant.nginx
-      nginx_error_log_level: info
       nginx_sites:
         sole.80:
           - listen 80
           - server_name {{ domain_name }}
+          - access_log off
           - return 301 https://$host$request_uri
         sole.443:
           - listen 443 ssl
           - server_name {{ domain_name }}
+          - access_log off
           - ssl_ciphers 'kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 kEDH+AES128 kEDH+AES256 DES-CBC3-SHA +SHA !aNULL !eNULL !LOW !kECDH !DSS !MD5 !EXP !PSK !SRP !CAMELLIA !SEED'
           - add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains;'
           - ssl_certificate /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
@@ -158,10 +159,12 @@
         www.sole.80:
           - listen 80
           - server_name www.{{ domain_name }}
+          - access_log off
           - return 301 https://{{ domain_name }}$request_uri
         www.sole.443:
           - listen 443 ssl
           - server_name www.{{ domain_name }}
+          - access_log off
           - ssl_certificate /etc/letsencrypt/live/www.{{ domain_name }}/fullchain.pem
           - ssl_certificate_key /etc/letsencrypt/live/www.{{ domain_name }}/privkey.pem
           - return 301 https://{{ domain_name }}$request_uri
