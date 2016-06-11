@@ -17,7 +17,7 @@
   tasks:
     - cron:
         name: Adjust time every day
-        special_time: daily
+        special_time: hourly
         job: ntpdate ntp.ubuntu.com
 
 - name: Update api-server hostname
@@ -56,6 +56,17 @@
   become: yes
   roles:
     - pcextreme.supervisor
+  post_tasks:
+    - name: Remove supervisor startup script
+      file:
+        path: /etc/init.d/supervisor
+        state: absent
+        mode: 0755
+    - name: Supervisord start on reboot
+      cron:
+        name: Start supervisord on reboot
+        special_time: reboot
+        job: supervisord
 
 - name: Install MySQL5.7
   hosts: api 
