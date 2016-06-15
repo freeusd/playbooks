@@ -6,6 +6,3 @@
 
 - name: Install service
   apt: pkg={{ supervisor_package }} state=present
-
-- name: Start and enable service
-  service: name={{ supervisor_service }} state=started enabled=yes
