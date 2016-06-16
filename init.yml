@@ -132,7 +132,16 @@
           - listen 80
           - server_name {{ domain_name }}
           - access_log off
-          - return 301 https://$host$request_uri
+          - |
+            location /api/ {
+              proxy_pass http://localhost:8749/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+            }
+          - |
+            location / {
+              return 302 https://$host$request_uri;
+            }
         sole.443:
           - listen 443 ssl
           - server_name {{ domain_name }}
@@ -171,18 +180,27 @@
           - listen 80
           - server_name www.{{ domain_name }}
           - access_log off
-          - return 301 https://{{ domain_name }}$request_uri
+          - |
+            location /api/ {
+              proxy_pass http://localhost:8749/;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+            }
+          - |
+            location / {
+              return 302 https://{{ domain_name }}$request_uri;
+            }
         www.sole.443:
           - listen 443 ssl
           - server_name www.{{ domain_name }}
           - access_log off
           - ssl_certificate /etc/letsencrypt/live/www.{{ domain_name }}/fullchain.pem
           - ssl_certificate_key /etc/letsencrypt/live/www.{{ domain_name }}/privkey.pem
-          - return 301 https://{{ domain_name }}$request_uri
+          - return 302 https://{{ domain_name }}$request_uri
         sole.admin.80:
           - listen 80
           - server_name admin.{{ domain_name }}
-          - return 301 https://admin.{{ domain_name }}$request_uri
+          - return 302 https://admin.{{ domain_name }}$request_uri
         sole.admin.443:
           - listen 443 ssl
           - server_name admin.{{ domain_name }}
@@ -269,7 +287,7 @@
         graylog.80:
           - listen 80
           - server_name log.solebtc.com
-          - return 301 https://$host$request_uri
+          - return 302 https://$host$request_uri
         graylog.443:
           - listen 443 ssl
           - server_name log.solebtc.com
