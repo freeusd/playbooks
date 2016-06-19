@@ -226,34 +226,9 @@
 - name: Initialize crypto coin daemon
   hosts: api
   become: yes
-  tasks:
-    - name: Download wallet
-      get_url:
-        url: "{{ wallet_url }}"
-        dest: /opt/wallet.tar.gz
-        validate_certs: no
-    - name: Unarchive wallet
-      unarchive:
-        src: /opt/wallet.tar.gz 
-        dest: /opt
-        copy: no
-    - name: Copy coind
-      command: cp -f /opt/{{ wallet_file }} /usr/bin/coind
-    - name: Copy coind conf
-      copy:
-        src: coind.conf
-        dest: /etc/coind.conf
-        mode: 0755
-    - name: Create coind data directory
-      file: 
-        path: /var/lib/coind
-        state: directory
-        mode: 0755
-    - name: Start coind on reboot
-      cron:
-        name: Start coind on reboot
-        special_time: reboot
-        job: /usr/bin/coind -daemon -conf=/etc/coind.conf -datadir=/var/lib/coind -pid=/var/run/coind.pid
+  roles:
+    - role: solefaucet.coindaemon
+      when: wallet_url != "" and wallet_file != ""
 
 - name: Issue letsencrypt ssl cert for log server
   hosts: log
