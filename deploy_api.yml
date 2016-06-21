@@ -31,8 +31,11 @@
     - name: Prepare configuration file
       template: src=sole.conf.j2 dest=/etc/supervisor/conf.d/sole.conf
   tasks:
+    - name: Supervisorctl stop sole
+      supervisorctl: name=sole state=stopped
+
     - name: Migrate database
       command: goose -env production up chdir=/usr/local/gopath/src/github.com/solefaucet/sole-server
       
-    - name: Supervisorctl restart sole
-      supervisorctl: name=sole state=restarted
+    - name: Supervisorctl start sole
+      supervisorctl: name=sole state=started
