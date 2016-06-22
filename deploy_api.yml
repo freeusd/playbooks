@@ -33,9 +33,10 @@
   tasks:
     - name: Supervisorctl stop sole
       supervisorctl: name=sole state=stopped
+      ignore_errors: yes 
 
     - name: Migrate database
       command: goose -env production up chdir=/usr/local/gopath/src/github.com/solefaucet/sole-server
       
     - name: Supervisorctl start sole
-      supervisorctl: name=sole state=started
+      supervisorctl: name=sole state=restarted
