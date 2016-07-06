@@ -1,0 +1,32 @@
+mysql_port: 3306
+
+mysql_bind_address: localhost
+
+mysql_datadir: /var/lib/mysql
+
+mysql_enabled_on_startup: yes
+
+mysql_root_password: ""
+
+mysql_databases:
+  - name: jackpot_prod
+    encoding: utf8
+    collation: utf8_general_ci
+
+mysql_users:
+  - name: d
+    host: localhost
+    password: d 
+    priv: "jackpot_prod.*:ALL"
+
+mysql_key_buffer_size: 512M
+
+mysql_max_allowed_packet: 128M
+
+mysql_table_open_cache: 512
+
+mysql_slow_query_log_enabled: yes
+
+mysql_slow_query_log_file: /var/log/mysql-slow.log
+
+mysql_slow_query_time: 2

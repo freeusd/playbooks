@@ -33,7 +33,9 @@
     - nodesource.node
 
 - name: Install golang
-  hosts: api
+  hosts:
+    - api
+    - jackpot
   become: yes
   roles:
     - role: azavea.golang
@@ -52,7 +54,9 @@
       git_install_from_source: true
 
 - name: Install supervisor
-  hosts: api 
+  hosts:
+    - api
+    - jackpot
   become: yes
   roles:
     - pcextreme.supervisor
@@ -69,10 +73,27 @@
         job: supervisord
 
 - name: Install MySQL5.7
-  hosts: api 
+  hosts: api
   become: yes
   vars_files:
     - vars/mysql.yml
+  pre_tasks:
+    - name: Add MySQL repository key
+      apt_key: url=http://repo.mysql.com/RPM-GPG-KEY-mysql state=present
+    - name: Add MySQL-5.7
+      apt_repository: repo='deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7' state=present
+    - name: Add MySQL-apt-config
+      apt_repository: repo='deb http://repo.mysql.com/apt/ubuntu/ trusty mysql-apt-config' state=present
+    - name: Add MySQL-5.7 src
+      apt_repository: repo='deb-src http://repo.mysql.com/apt/ubuntu/ trusty mysql-5.7' state=present
+  roles:
+      - geerlingguy.mysql
+
+- name: Install MySQL5.7
+  hosts: jackpot
+  become: yes
+  vars_files:
+    - vars/mysql_jackpot.yml
   pre_tasks:
     - name: Add MySQL repository key
       apt_key: url=http://repo.mysql.com/RPM-GPG-KEY-mysql state=present
@@ -121,7 +142,7 @@
       letsencrypt_renewal_command_args: '--renew-hook "service nginx reload"'
 
 - name: Initialize nginx 
-  hosts: api 
+  hosts: api
   become: yes
   vars:
     nginx_official_repo: True 
@@ -224,7 +245,9 @@
             }
 
 - name: Initialize crypto coin daemon
-  hosts: api
+  hosts:
+    - api
+    - jackpot
   become: yes
   roles:
     - role: solefaucet.coindaemon
