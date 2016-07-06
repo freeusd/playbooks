@@ -1,0 +1,35 @@
+- name: Deploy jackpot server
+  hosts: jackpot
+  become: yes
+  environment:
+    GOPATH: /usr/local/gopath
+  pre_tasks:
+    - name: Make sure log directory exists
+      file: recurse=yes dest=/var/log/jackpot force=no owner={{ ansible_user }} group={{ ansible_user }} mode=0755 state=directory
+
+    - name: Remove jackpot-server source code first
+      file: path=/usr/local/gopath/src/github.com/solefaucet/jackpot-server state=absent
+    - name: Clone jackpot-server
+      git:
+        repo: https://github.com/solefaucet/jackpot-server.git
+        dest: /usr/local/gopath/src/github.com/solefaucet/jackpot-server
+    - name: Build jackpot-server
+      shell: "go build -ldflags \"-X main.goVersion=`go version | grep -o 'go[0-9|.]\\+'` -X main.buildTime=`date '+%Y-%m-%d_%I:%M:%S%p'` -X main.gitCommit=`git rev-parse --short HEAD`\" -o /usr/local/bin/jackpot chdir=/usr/local/gopath/src/github.com/solefaucet/jackpot-server"
+
+    - name: Build goose for db migration
+      command: go get bitbucket.org/liamstask/goose/cmd/goose
+    - name: move goose to /usr/local/bin/goose
+      command: mv goose /usr/local/bin/goose chdir=/usr/local/gopath/bin
+
+    - name: Prepare configuration file
+      template: src=jackpot.conf.j2 dest=/etc/supervisor/conf.d/jackpot.conf
+  tasks:
+    - name: Supervisorctl stop jackpot 
+      supervisorctl: name=jackpot state=stopped
+      ignore_errors: yes 
+
+    - name: Migrate database
+      command: goose -env production up chdir=/usr/local/gopath/src/github.com/solefaucet/jackpot-server
+      
+    - name: Supervisorctl start jackpot
+      supervisorctl: name=jackpot state=restarted

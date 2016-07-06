@@ -1,0 +1,11 @@
+[program:jackpot]
+command=/usr/local/bin/jackpot
+autostart=true
+autorestart=true
+redirect_stderr=true
+stderr_logfile=/var/log/jackpot/err.log
+stdout_logfile=/var/log/jackpot/out.log
+user={{ ansible_user }}
+{% if env_vars|length > 0 %}
+environment={% for name, value in env_vars.iteritems() %}{% filter upper %}jackpot_{{ name }}{% endfilter %}="{{ value }}"{% if not loop.last %},{% endif %}{% endfor %}
+{% endif %}
