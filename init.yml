@@ -16,9 +16,9 @@
   become: yes
   tasks:
     - cron:
-        name: Adjust time every day
+        name: Adjust time every hour 
         special_time: hourly
-        job: ntpdate ntp.ubuntu.com
+        job: /usr/sbin/ntpdate ntp.ubuntu.com
 
 - name: Update api-server hostname
   hosts: api
