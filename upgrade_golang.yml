@@ -1,0 +1,12 @@
+- name: Install golang
+  hosts:
+    - api
+  become: yes
+  roles:
+    - role: azavea.golang
+      golang_version: 1.7.1
+      golang_os: linux
+      golang_arch: amd64
+      golang_path: /usr/local/gopath
+
+
